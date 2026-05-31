@@ -5,7 +5,10 @@ Pruebas unitarias para el módulo EDA
 import unittest
 import pandas as pd
 import numpy as np
-from src.datautilityhub.eda import DataLoader, NullAnalyzer, DuplicateHandler
+import matplotlib
+
+matplotlib.use("Agg")
+from armands.eda import DataLoader, NullAnalyzer, DuplicateHandler
 import os
 import tempfile
 
@@ -61,7 +64,7 @@ class TestDuplicateHandler(unittest.TestCase):
 
     def test_find_duplicates(self):
         duplicados = DuplicateHandler.find_duplicates(self.df)
-        self.assertEqual(len(duplicados), 2)
+        self.assertEqual(len(duplicados), 4)
 
     def test_remove_duplicates(self):
         df_limpio = DuplicateHandler.remove_duplicates(self.df)

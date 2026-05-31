@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 from sklearn.datasets import make_classification, make_regression
 from sklearn.linear_model import LogisticRegression, LinearRegression
-from src.datautilityhub.ml import ModelEvaluator, ModelOptimizer, ModelPersistence
+from armands.ml import ModelEvaluator, ModelOptimizer, ModelPersistence
 import os
 import tempfile
 

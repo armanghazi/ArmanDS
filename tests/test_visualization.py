@@ -5,8 +5,13 @@ Pruebas unitarias para el módulo de visualización
 import unittest
 import pandas as pd
 import numpy as np
-from src.datautilityhub.visualization import DataVisualizer
+import matplotlib
+
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
+from armands.visualizaciones import DataVisualizer
+
 
 class TestDataVisualizer(unittest.TestCase):
     def setUp(self):

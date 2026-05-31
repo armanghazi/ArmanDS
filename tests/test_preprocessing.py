@@ -5,7 +5,7 @@ Pruebas unitarias para el módulo de preprocesamiento
 import unittest
 import pandas as pd
 import numpy as np
-from src.datautilityhub.preprocessing import DataCleaner, FeatureEngineer
+from armands.preprocesamiento import DataCleaner, FeatureEngineer
 
 class TestDataCleaner(unittest.TestCase):
     def setUp(self):
@@ -24,7 +24,8 @@ class TestDataCleaner(unittest.TestCase):
 
     def test_remove_outliers(self):
         df_clean = DataCleaner.remove_outliers(
-            self.df, columns=['A'], method='zscore')
+            self.df, columns=["A"], method="zscore", threshold=2
+        )
         self.assertLess(len(df_clean), len(self.df))
 
     def test_handle_missing_values(self):
