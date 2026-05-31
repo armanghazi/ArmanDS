@@ -1,4 +1,4 @@
-# DataUtilityHub
+# ArmanDS
 
 Biblioteca de utilidades para ciencia de datos que incluye herramientas para análisis exploratorio, visualización, preprocesamiento y machine learning.
 
@@ -11,8 +11,8 @@ Biblioteca de utilidades para ciencia de datos que incluye herramientas para an�
 
 1. Clona el repositorio:
 ```bash
-git clone https://github.com/tu-usuario/DataUtilityHub.git
-cd DataUtilityHub
+git clone https://github.com/armanghazi/ArmanDS.git
+cd ArmanDS
 ```
 
 2. Instala las dependencias:
@@ -38,7 +38,7 @@ Los resultados y visualizaciones se guardarán en el directorio `resultados/`.
 
 <div align="center">
 
-![DataUtilityHub Logo](img/logo.png)
+![ArmanDS Logo](img/logo.png)
 
 Una biblioteca de ciencia de datos diseñada para simplificar el análisis exploratorio de datos y machine learning.
 
@@ -146,7 +146,7 @@ from datautilityhub.ml import ModelEvaluator, ModelOptimizer, ModelPersistence
 `best_model, results = ModelOptimizer.optimize_hyperparameters(model, X, y, param_grid)`
 
 ## 📚 Documentación
-Para documentación detallada, visita nuestra [wiki](https://github.com/tu_usuario/DataUtilityHub/wiki).
+Para documentación detallada, visita nuestra [wiki](https://github.com/armanghazi/ArmanDS/wiki).
 
 ## 🤝 Contribuir
 Las contribuciones son bienvenidas! Por favor, lee nuestras [guías de contribución](CONTRIBUTING.md).
