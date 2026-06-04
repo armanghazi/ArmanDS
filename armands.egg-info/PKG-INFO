@@ -1,3 +1,22 @@
+Metadata-Version: 2.4
+Name: armands
+Version: 0.2.0
+Summary: Python library for EDA, visualization, preprocessing, and machine learning
+Author: ArmanDS
+License-Expression: MIT
+Project-URL: Homepage, https://github.com/armanghazi/ArmanDS
+Project-URL: Repository, https://github.com/armanghazi/ArmanDS.git
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: numpy>=1.20.0
+Requires-Dist: pandas>=1.3.0
+Requires-Dist: scikit-learn>=0.24.0
+Requires-Dist: matplotlib>=3.4.0
+Requires-Dist: seaborn>=0.11.0
+Requires-Dist: plotly>=5.3.0
+Requires-Dist: category-encoders>=2.3.0
+Requires-Dist: joblib>=1.0.0
+
 # ArmanDS
 
 <div align="center">

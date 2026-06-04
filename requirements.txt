@@ -1,27 +1,8 @@
-# Dependencias principales
-numpy>=1.21.0
+numpy>=1.20.0
 pandas>=1.3.0
-scikit-learn>=1.0.0
+scikit-learn>=0.24.0
 matplotlib>=3.4.0
 seaborn>=0.11.0
+plotly>=5.3.0
 category-encoders>=2.3.0
-
-# Dependencias para visualización
-plotly>=5.1.0
-ipywidgets>=7.6.0
-
-# Dependencias para procesamiento de datos
-scipy>=1.7.0
-statsmodels>=0.13.0
-
-# Dependencias para machine learning
-xgboost>=1.5.0
-lightgbm>=3.3.0
-optuna>=2.10.0
-
-# Dependencias para manejo de fechas
-python-dateutil>=2.8.2
-
-# Dependencias para reportes
-jupyter>=1.0.0
-nbformat>=5.1.0
+joblib>=1.0.0

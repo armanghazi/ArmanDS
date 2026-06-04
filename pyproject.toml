@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "armands"
 version = "0.2.0"
-description = "Biblioteca para EDA, visualización, preprocesamiento y machine learning"
+description = "Python library for EDA, visualization, preprocessing, and machine learning"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.8"
@@ -25,5 +25,12 @@ dependencies = [
 Homepage = "https://github.com/armanghazi/ArmanDS"
 Repository = "https://github.com/armanghazi/ArmanDS.git"
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.setuptools]
+package-dir = { armands = "." }
+packages = [
+    "armands",
+    "armands.eda",
+    "armands.ml",
+    "armands.preprocesamiento",
+    "armands.visualizaciones",
+]
