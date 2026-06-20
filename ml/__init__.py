@@ -1,3 +1,5 @@
-from .regresion import ModelEvaluator, ModelOptimizer, ModelPersistence
+"""Model evaluation, optimization, and persistence."""
+
+from .model import ModelEvaluator, ModelOptimizer, ModelPersistence
 
 __all__ = ["ModelEvaluator", "ModelOptimizer", "ModelPersistence"]

@@ -1,0 +1,17 @@
+include README.md
+include LICENSE
+include pyproject.toml
+include requirements.txt
+exclude setup.py
+include __init__.py
+recursive-include eda *.py
+recursive-include ml *.py
+recursive-include preprocessing *.py
+recursive-include visualizations *.py
+prune examples
+prune tests
+prune build
+prune dist
+prune armands
+global-exclude __pycache__
+global-exclude *.py[cod]

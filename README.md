@@ -2,53 +2,62 @@
 
 <div align="center">
 
-Biblioteca de Python para análisis exploratorio de datos (EDA), visualización, preprocesamiento y machine learning.
+Python library for exploratory data analysis (EDA), visualization, preprocessing, and machine learning.
 
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Package](https://img.shields.io/badge/pypi-armands-0.2.0-orange.svg)](https://pypi.org/project/armands/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 </div>
 
-ArmanDS centraliza las tareas más habituales del ciclo de vida de un proyecto de datos en un único paquete instalable: **`armands`**. Incluye carga automática de CSV, análisis de nulos y duplicados, gráficos (estáticos e interactivos con Plotly), limpieza e ingeniería de características, y evaluación u optimización de modelos con reportes automáticos.
+ArmanDS consolidates the most common tasks in a data project lifecycle into a single installable package: **`armands`**. It covers automatic CSV loading, null and duplicate analysis, static and interactive (Plotly) charts, data cleaning and feature engineering, and model evaluation and optimization with automatic reports.
 
 ---
 
-## Tabla de contenidos
+## Table of contents
 
-- [Requisitos](#requisitos)
-- [Instalación](#instalación)
-- [Estructura del proyecto](#estructura-del-proyecto)
-- [Inicio rápido](#inicio-rápido)
-- [Características](#características)
-- [Uso por módulo](#uso-por-módulo)
-- [Salidas generadas](#salidas-generadas)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Using in VS Code or another project](#using-in-vs-code-or-another-project)
+- [Project structure](#project-structure)
+- [Quick start](#quick-start)
+- [Features](#features)
+- [Usage by module](#usage-by-module)
+- [Generated outputs](#generated-outputs)
 - [Tests](#tests)
-- [Licencia](#licencia)
+- [Local development](#local-development)
+- [License](#license)
 
 ---
 
-## Requisitos
+## Requirements
 
-- Python 3.8 o superior
+- Python 3.8 or higher
 - pip
 
+**Main dependencies** (installed automatically): `numpy`, `pandas`, `scikit-learn`, `matplotlib`, `seaborn`, `plotly`, `category-encoders`, `joblib`.
+
 ---
 
-## Instalación
+## Installation
 
-Desde PyPI (recomendado cuando el paquete esté publicado):
+### From PyPI
+
+Once published:
 
 ```bash
 pip install armands
 ```
 
-Desde el repositorio en GitHub (sin clonar manualmente):
+### From GitHub
+
+Without cloning manually:
 
 ```bash
 pip install "git+https://github.com/armanghazi/ArmanDS.git"
 ```
 
-Desde una copia local del código:
+### From a local clone
 
 ```bash
 git clone https://github.com/armanghazi/ArmanDS.git
@@ -56,49 +65,81 @@ cd ArmanDS
 pip install .
 ```
 
-Las dependencias (`numpy`, `pandas`, `scikit-learn`, etc.) se instalan automáticamente con el paquete. El archivo `requirements.txt` sirve solo como referencia o para entornos sin `pyproject.toml`.
+Verify the installation:
+
+```bash
+python -c "from armands import DataLoader, ModelEvaluator; print('OK')"
+```
+
+> **Note:** `requirements.txt` lists the same dependencies as `pyproject.toml` and serves as a reference. There is no need to run `pip install -r requirements.txt` if you already installed the package with `pip install .` or `pip install armands`.
 
 ---
 
-## Estructura del proyecto
+## Using in VS Code or another project
+
+1. Create a virtual environment in your data project (recommended):
+
+   ```bash
+   python -m venv .venv
+   .venv\Scripts\activate    # Windows
+   # source .venv/bin/activate   # Linux / macOS
+   ```
+
+2. Install the library into that environment (`pip install armands`, `pip install .` from the clone, or the GitHub URL).
+
+3. In VS Code: `Ctrl+Shift+P` → **Python: Select Interpreter** → choose the `.venv` where you installed `armands`.
+
+4. Place your CSVs in a folder (e.g. `data/`) and use the library in a script:
+
+   ```python
+   import matplotlib
+   matplotlib.use("Agg")  # optional: suppresses blocking windows in scripts
+
+   from armands import DataLoader, NullAnalyzer, DataCleaner, DataVisualizer
+
+   df = DataLoader.load_csv_from_directory("data/")
+   null_info, tips = NullAnalyzer.null_analysis(df, show_plot=False)
+   DataVisualizer.plot_correlation_matrix(df, interactive=False, show=False)
+   df = DataCleaner.handle_missing_values(df, strategy="most_frequent")
+   ```
+
+5. Run with **Run Python File** or `python my_analysis.py`.
+
+---
+
+## Project structure
+
+The source lives in the repository root; setuptools publishes it as the **`armands`** package (`package-dir` in `pyproject.toml`).
 
 ```
-ArmanDS/                          # pip install name: armands (package-dir maps root → armands)
-├── __init__.py
-├── eda/                          # Análisis exploratorio de datos
-│   └── eda.py
-├── ml/                           # Evaluación y optimización de modelos
-│   └── regresion.py
-├── visualizaciones/              # Gráficos y visualizaciones
-│   ├── correlacion.py
-│   └── regresiones.py
-├── preprocesamiento/             # Limpieza e ingeniería de características
-│   └── preprocesamiento.py
-├── prueba.py                     # Script de ejemplo completo
-├── setup.py
-├── pyproject.toml
+ArmanDS/
+├── __init__.py                   # Public API (import armands)
+├── eda/                          # → armands.eda
+│   └── eda.py                    # DataLoader, NullAnalyzer, DuplicateHandler
+├── ml/                           # → armands.ml
+│   └── model.py                  # ModelEvaluator, ModelOptimizer, ModelPersistence
+├── preprocessing/                # → armands.preprocessing
+│   └── preprocessing.py          # DataCleaner, FeatureEngineer
+├── visualizations/               # → armands.visualizations
+│   ├── correlation.py            # plot_correlation_matrix, plot_categorical_analysis
+│   ├── plots.py                  # plot_distribution, plot_time_series
+│   └── _plot.py                  # internal helper
+├── tests/
+├── pyproject.toml                # metadata and build config (PEP 517)
 ├── requirements.txt
 └── README.md
 ```
 
-Tras clonar el repositorio:
+After cloning:
 
 ```bash
 pip install .
-python prueba.py
+python -m pytest tests/ -v
 ```
 
 ---
 
-## Inicio rápido
-
-Ejecuta el ejemplo incluido para ver el flujo completo (EDA → visualización → preprocesamiento → ML):
-
-```bash
-python prueba.py
-```
-
-Importación general:
+## Quick start
 
 ```python
 from armands import (
@@ -116,107 +157,123 @@ from armands import (
 
 ---
 
-## Características
+## Features
 
-### Análisis exploratorio de datos (EDA)
+### Exploratory data analysis (EDA)
 
-| Clase | Métodos |
+| Class | Methods |
 |-------|---------|
-| **DataLoader** | `cargar_csv_de_directorio()`, `cargar_multiple_csv()` |
-| **NullAnalyzer** | `null_analysis()`, `analizar_patrones_nulos()` |
+| **DataLoader** | `load_csv_from_directory()`, `load_multiple_csv()` |
+| **NullAnalyzer** | `null_analysis()`, `analyze_null_patterns()` |
 | **DuplicateHandler** | `find_duplicates()`, `remove_duplicates()`, `get_duplicate_stats()` |
 
-- Carga automática del primer CSV de un directorio con resumen básico (info, describe, valores únicos).
-- Carga múltiple con patrones glob (`datos_*.csv`).
-- Análisis de nulos con recomendaciones y gráfico opcional.
-- Detección de correlaciones entre patrones de valores faltantes.
-- Estadísticas y eliminación de filas duplicadas.
+- Automatically loads the first CSV in a directory and prints a summary.
+- Batch loading with glob patterns (`sales_*.csv`).
+- Null analysis with recommendations and an optional bar chart.
+- Detects correlations between missing-value patterns across columns.
+- Duplicate statistics, detection, and removal.
 
-### Visualización
+### Visualization
 
-| Clase | Métodos |
+| Class | Methods |
 |-------|---------|
 | **DataVisualizer** | `plot_correlation_matrix()`, `plot_distribution()`, `plot_categorical_analysis()`, `plot_time_series()` |
 
-- Matrices de correlación (Matplotlib o Plotly interactivo).
-- Histogramas y boxplots por columna numérica.
-- Análisis de variables categóricas (conteos y promedios por categoría).
-- Series temporales con agregación por frecuencia (`D`, `W`, `M`, etc.).
+- Correlation matrices (Matplotlib or interactive Plotly).
+- Histograms and boxplots per numeric column.
+- Categorical variable analysis (counts and means per category).
+- Time series with frequency aggregation (`D`, `W`, `M`, etc.).
+- `show=False` on static charts for headless scripts (compatible with `Agg` backend).
 
-### Preprocesamiento
+### Preprocessing
 
-| Clase | Métodos |
+| Class | Methods |
 |-------|---------|
 | **DataCleaner** | `remove_outliers()`, `handle_missing_values()`, `handle_infinite_values()` |
 | **FeatureEngineer** | `create_date_features()`, `create_interaction_features()`, `encode_categorical()`, `scale_features()` |
 
-- Outliers por **z-score** o **IQR**.
-- Imputación simple o KNN; estrategias por columna.
-- Codificación one-hot, label, target, WOE o binaria.
-- Escalado standard, min-max o robust.
+- Outlier removal by **z-score** or **IQR**.
+- **Numeric and categorical** imputation (global strategy or per-column dict; KNN for numeric only).
+- One-hot, label, target, WOE, or binary encoding (`target_column` required for target/WOE).
+- Standard, min-max, or robust scaling.
+- Interaction features with safe division (no divide-by-zero errors).
 
 ### Machine learning
 
-| Clase | Métodos |
+| Class | Methods |
 |-------|---------|
 | **ModelEvaluator** | `evaluate_model()` |
 | **ModelOptimizer** | `optimize_hyperparameters()`, `cross_validate_model()` |
 | **ModelPersistence** | `save_model()`, `load_model()` |
 
-- Evaluación de **clasificación** y **regresión** con métricas y gráficos.
-- Reportes de texto automáticos en `resultados/`.
-- Grid Search y Random Search de hiperparámetros.
-- Validación cruzada con varias métricas.
-- Guardado y carga de modelos con versionado por timestamp.
+- Evaluation for **classification** and **regression** with metrics and plots.
+- ROC curve for binary classification, including string labels (e.g. `yes`/`no`).
+- Automatic text reports saved to `resultados/`.
+- Grid Search and Random Search for hyperparameter tuning.
+- Cross-validation with automatic `n_splits` adjustment for small datasets.
+- Model save/load in `.joblib` format with optional timestamp.
 
 ---
 
-## Uso por módulo
+## Usage by module
 
 ### EDA
 
 ```python
 from armands import DataLoader, NullAnalyzer, DuplicateHandler
 
-# Cargar el primer CSV de una carpeta
-df = DataLoader.cargar_csv_de_directorio("datos/")
+df = DataLoader.load_csv_from_directory("data/")
+dfs = DataLoader.load_multiple_csv("data/", pattern="sales_*.csv")
 
-# Cargar varios CSV con patrón
-dfs = DataLoader.cargar_multiple_csv("datos/", pattern="ventas_*.csv")
+null_info, recommendations = NullAnalyzer.null_analysis(df, show_plot=True)
+NullAnalyzer.analyze_null_patterns(df)
 
-# Valores nulos
-null_info, recomendaciones = NullAnalyzer.null_analysis(df, show_plot=True)
-patrones = NullAnalyzer.analizar_patrones_nulos(df)
-
-# Duplicados
 stats = DuplicateHandler.get_duplicate_stats(df)
-duplicados = DuplicateHandler.find_duplicates(df)
-df_limpio = DuplicateHandler.remove_duplicates(df)
+dupes = DuplicateHandler.find_duplicates(df)
+df_clean = DuplicateHandler.remove_duplicates(df)
 ```
 
-### Visualización
+### Visualization
 
 ```python
 from armands import DataVisualizer
 
+# Interactive (notebook / browser)
 DataVisualizer.plot_correlation_matrix(df, interactive=True)
-DataVisualizer.plot_distribution(df, columns=["edad", "salario"])
-DataVisualizer.plot_categorical_analysis(df, "departamento", value_column="salario")
-DataVisualizer.plot_time_series(df, date_column="fecha", value_columns="ventas", freq="M")
+
+# Headless script
+DataVisualizer.plot_correlation_matrix(df, interactive=False, show=False)
+DataVisualizer.plot_distribution(df, columns=["age", "salary"], show=False)
+DataVisualizer.plot_categorical_analysis(
+    df, cat_column="department", value_column="salary", show=False
+)
+DataVisualizer.plot_time_series(
+    df, date_column="date", value_columns="sales", freq="M", show=False
+)
 ```
 
-### Preprocesamiento
+### Preprocessing
 
 ```python
 from armands import DataCleaner, FeatureEngineer
 
-df = DataCleaner.remove_outliers(df, columns=["salario"], method="zscore")
-df = DataCleaner.handle_missing_values(df, strategy={"edad": "mean", "departamento": "most_frequent"})
+df = DataCleaner.remove_outliers(df, columns=["salary"], method="zscore")
+
+# Global: numeric + categorical
+df = DataCleaner.handle_missing_values(df, strategy="most_frequent")
+
+# Per-column
+df = DataCleaner.handle_missing_values(
+    df,
+    strategy={"age": "mean", "department": "most_frequent"},
+)
 df = DataCleaner.handle_infinite_values(df)
 
-df = FeatureEngineer.create_date_features(df, "fecha")
-df = FeatureEngineer.create_interaction_features(df, columns=[("precio", "cantidad")], operation="multiply")
-df = FeatureEngineer.encode_categorical(df, columns=["departamento"], method="onehot")
+df = FeatureEngineer.create_date_features(df, "date")
+df = FeatureEngineer.create_interaction_features(
+    df, columns=[("price", "quantity")], operation="multiply"
+)
+df = FeatureEngineer.encode_categorical(df, columns=["department"], method="onehot")
 df, scaler = FeatureEngineer.scale_features(df, method="standard")
 ```
 
@@ -238,40 +295,68 @@ metrics = evaluator.evaluate_model(
 )
 
 cv = ModelOptimizer.cross_validate_model(
-    RandomForestRegressor(),
-    X, y,
+    RandomForestRegressor(), X, y,
+    cv=5,
     scoring=["neg_mean_squared_error", "r2"],
     task_type="regression",
 )
 
 param_grid = {"n_estimators": [50, 100], "max_depth": [None, 10]}
 best_model, results = ModelOptimizer.optimize_hyperparameters(
-    RandomForestRegressor(), X, y, param_grid=param_grid, scoring="neg_mean_squared_error"
+    RandomForestRegressor(), X, y,
+    param_grid=param_grid,
+    scoring="neg_mean_squared_error",
 )
 
-ruta = ModelPersistence.save_model(best_model, "random_forest")
-modelo_cargado = ModelPersistence.load_model(ruta)
+path = ModelPersistence.save_model(best_model, "random_forest")
+loaded = ModelPersistence.load_model(path)
 ```
 
 ---
 
-## Salidas generadas
+## Generated outputs
 
-| Carpeta | Contenido |
-|---------|-----------|
-| `resultados/` | Reportes `.txt`, matrices de confusión, curvas ROC, gráficos de regresión |
-| `modelos/` | Modelos guardados en formato `.joblib` con timestamp |
+| Folder | Contents |
+|--------|----------|
+| `resultados/` | Text reports, confusion matrices, ROC curves, regression plots |
+| `modelos/` | Models saved in `.joblib` format with timestamp |
+
+These folders are created in the current working directory when running evaluations or saving models. They are not included in the installed package and are listed in `.gitignore`.
 
 ---
 
 ## Tests
 
 ```bash
-python -m unittest discover -s tests -q
+pip install .
+python -m pytest tests/ -v
+```
+
+Covers categorical imputation, safe interaction features (divide-by-zero), ROC curve with string labels, and cross-validation on small datasets.
+
+---
+
+## Local development
+
+```bash
+git clone https://github.com/armanghazi/ArmanDS.git
+cd ArmanDS
+python -m venv .venv
+.venv\Scripts\activate
+pip install .
+python -m pytest tests/ -v
+```
+
+To publish to PyPI (once credentials are configured):
+
+```bash
+pip install build twine
+python -m build
+twine upload dist/*
 ```
 
 ---
 
-## Licencia
+## License
 
-Este proyecto está bajo la [Licencia MIT](LICENSE).
+This project is licensed under the [MIT License](LICENSE).

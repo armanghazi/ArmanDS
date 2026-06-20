@@ -1,5 +1,5 @@
 """
-Preprocesamiento: limpieza e ingeniería de características.
+Preprocessing: data cleaning and feature engineering.
 """
 
 from typing import Dict, List, Optional, Tuple, Union
@@ -12,7 +12,7 @@ from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 
 
 class DataCleaner:
-    """Limpieza de datos."""
+    """Data cleaning."""
 
     @staticmethod
     def remove_outliers(
@@ -21,7 +21,7 @@ class DataCleaner:
         method: str = "zscore",
         threshold: float = 3,
     ) -> pd.DataFrame:
-        """Elimina valores atípicos (zscore o IQR)."""
+        """Remove outliers using z-score or IQR method."""
         df = df.copy()
 
         if method == "zscore":
@@ -46,32 +46,50 @@ class DataCleaner:
         return df
 
     @staticmethod
+    def _fill_categorical(series: pd.Series, strategy: str) -> pd.Series:
+        """Impute missing values in a non-numeric column."""
+        if not series.isna().any():
+            return series
+        if strategy in ("mean", "median"):
+            strategy = "most_frequent"
+        if strategy == "constant":
+            return series.fillna("")
+        mode = series.mode()
+        fill = mode.iloc[0] if not mode.empty else "unknown"
+        return series.fillna(fill)
+
+    @staticmethod
     def handle_missing_values(
         df: pd.DataFrame,
         strategy: Union[str, Dict] = "mean",
         method: str = "simple",
     ) -> pd.DataFrame:
-        """Manejo de valores faltantes."""
+        """Handle missing values in numeric and categorical columns."""
         df = df.copy()
         numeric_cols = df.select_dtypes(include=[np.number]).columns
+        non_numeric_cols = [c for c in df.columns if c not in numeric_cols]
 
         if isinstance(strategy, str):
-            if method == "simple":
-                imputer = SimpleImputer(strategy=strategy)
-                df[numeric_cols] = imputer.fit_transform(df[numeric_cols])
-            elif method == "knn":
+            if method == "knn":
+                if len(numeric_cols) == 0:
+                    raise ValueError("KNN imputation requires at least one numeric column.")
                 imputer = KNNImputer(n_neighbors=5)
                 df[numeric_cols] = imputer.fit_transform(df[numeric_cols])
+            else:
+                for col in numeric_cols:
+                    imputer = SimpleImputer(strategy=strategy)
+                    df[[col]] = imputer.fit_transform(df[[col]])
+                for col in non_numeric_cols:
+                    df[col] = DataCleaner._fill_categorical(df[col], strategy)
         else:
             for col, strat in strategy.items():
                 if col not in df.columns:
                     continue
-                if df[col].dtype in (object, "category"):
-                    fill = df[col].mode().iloc[0] if not df[col].mode().empty else ""
-                    df[col] = df[col].fillna(fill)
-                else:
+                if col in numeric_cols:
                     imputer = SimpleImputer(strategy=strat)
                     df[[col]] = imputer.fit_transform(df[[col]])
+                else:
+                    df[col] = DataCleaner._fill_categorical(df[col], strat)
 
         return df
 
@@ -79,7 +97,7 @@ class DataCleaner:
     def handle_infinite_values(
         df: pd.DataFrame, replacement: Union[str, float] = "mean"
     ) -> pd.DataFrame:
-        """Tratamiento de valores infinitos."""
+        """Handle infinite values in numeric columns."""
         df = df.copy()
         numeric_cols = df.select_dtypes(include=[np.number]).columns
 
@@ -105,11 +123,11 @@ class DataCleaner:
 
 
 class FeatureEngineer:
-    """Ingeniería de características."""
+    """Feature engineering."""
 
     @staticmethod
     def create_date_features(df: pd.DataFrame, date_column: str) -> pd.DataFrame:
-        """Extracción de características temporales."""
+        """Extract temporal features from a date column."""
         df = df.copy()
         df[date_column] = pd.to_datetime(df[date_column])
 
@@ -130,7 +148,7 @@ class FeatureEngineer:
     def create_interaction_features(
         df: pd.DataFrame, columns: List[tuple], operation: str = "multiply"
     ) -> pd.DataFrame:
-        """Creación de interacciones entre columnas."""
+        """Create interaction features between column pairs."""
         df = df.copy()
         operations = {
             "multiply": lambda x, y: x * y,
@@ -144,7 +162,15 @@ class FeatureEngineer:
 
         for col1, col2 in columns:
             new_col = f"{col1}_{operation}_{col2}"
-            df[new_col] = operations[operation](df[col1], df[col2])
+            if operation == "divide":
+                df[new_col] = np.divide(
+                    df[col1],
+                    df[col2],
+                    out=np.zeros(len(df), dtype=float),
+                    where=df[col2].to_numpy() != 0,
+                )
+            else:
+                df[new_col] = operations[operation](df[col1], df[col2])
 
         return df
 
@@ -155,7 +181,7 @@ class FeatureEngineer:
         method: str = "onehot",
         target_column: Optional[str] = None,
     ) -> pd.DataFrame:
-        """Codificación de variables categóricas."""
+        """Encode categorical variables."""
         df = df.copy()
 
         if columns is None:
@@ -164,7 +190,7 @@ class FeatureEngineer:
         for col in columns:
             if col in df.columns and df[col].isnull().any():
                 mode_val = df[col].mode()
-                fill = mode_val.iloc[0] if not mode_val.empty else "desconocido"
+                fill = mode_val.iloc[0] if not mode_val.empty else "unknown"
                 df[col] = df[col].fillna(fill)
 
         if method == "onehot":
@@ -172,10 +198,14 @@ class FeatureEngineer:
         elif method == "label":
             for col in columns:
                 df[col] = df[col].astype("category").cat.codes
-        elif method == "target" and target_column:
+        elif method == "target":
+            if not target_column:
+                raise ValueError("target_column is required for target encoding.")
             encoder = TargetEncoder()
             df[columns] = encoder.fit_transform(df[columns], df[target_column])
-        elif method == "woe" and target_column:
+        elif method == "woe":
+            if not target_column:
+                raise ValueError("target_column is required for WOE encoding.")
             encoder = WOEEncoder()
             df[columns] = encoder.fit_transform(df[columns], df[target_column])
         elif method == "binary":
@@ -191,7 +221,7 @@ class FeatureEngineer:
         columns: Optional[List[str]] = None,
         method: str = "standard",
     ) -> Tuple[pd.DataFrame, object]:
-        """Escalado de características numéricas."""
+        """Scale numeric features."""
         df = df.copy()
 
         if columns is None:

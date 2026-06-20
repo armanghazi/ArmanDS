@@ -1,5 +1,5 @@
 """
-Módulo de Machine Learning: evaluación, optimización y persistencia de modelos.
+Machine Learning module: model evaluation, optimization, and persistence.
 """
 
 import os
@@ -32,7 +32,7 @@ from sklearn.model_selection import (
 
 
 class ModelEvaluator:
-    """Evaluación de modelos con métricas, gráficos y reportes."""
+    """Model evaluation with metrics, plots, and reports."""
 
     def evaluate_model(
         self,
@@ -42,9 +42,9 @@ class ModelEvaluator:
         y_train: Union[pd.Series, np.ndarray],
         y_test: Union[pd.Series, np.ndarray],
         task_type: str = "classification",
-        model_name: str = "Modelo ML",
+        model_name: str = "ML Model",
     ) -> Dict:
-        """Evalúa un modelo de clasificación o regresión."""
+        """Evaluate a classification or regression model."""
         results_dir = "resultados"
         os.makedirs(results_dir, exist_ok=True)
 
@@ -88,9 +88,9 @@ class ModelEvaluator:
         plt.figure(figsize=(10, 8))
         cm = confusion_matrix(y_test, y_pred)
         sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
-        plt.title(f"Matriz de Confusión - {model_name}")
-        plt.ylabel("Valor Real")
-        plt.xlabel("Valor Predicho")
+        plt.title(f"Confusion Matrix - {model_name}")
+        plt.ylabel("Actual")
+        plt.xlabel("Predicted")
         safe_name = model_name.lower().replace(" ", "_")
         plt.savefig(f"resultados/confusion_matrix_{safe_name}.png")
         plt.close()
@@ -98,16 +98,33 @@ class ModelEvaluator:
     def _plot_roc_curve(self, model, X_test, y_test, model_name: str) -> None:
         from sklearn.metrics import auc, roc_curve
 
-        y_pred_proba = model.predict_proba(X_test)[:, 1]
-        fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
+        y_true = np.asarray(y_test)
+        classes = np.unique(y_true)
+        if len(classes) != 2:
+            return
+
+        proba = model.predict_proba(X_test)
+        if proba.shape[1] != 2:
+            return
+
+        if hasattr(model, "classes_"):
+            pos_label = model.classes_[-1]
+            pos_idx = int(np.where(model.classes_ == pos_label)[0][0])
+        else:
+            pos_label = classes[-1]
+            pos_idx = 1
+
+        y_bin = (y_true == pos_label).astype(int)
+        y_score = proba[:, pos_idx]
+        fpr, tpr, _ = roc_curve(y_bin, y_score)
         roc_auc = auc(fpr, tpr)
 
         plt.figure(figsize=(10, 8))
         plt.plot(fpr, tpr, color="darkorange", lw=2, label=f"ROC curve (AUC = {roc_auc:.2f})")
         plt.plot([0, 1], [0, 1], color="navy", lw=2, linestyle="--")
-        plt.xlabel("Tasa de Falsos Positivos")
-        plt.ylabel("Tasa de Verdaderos Positivos")
-        plt.title(f"Curva ROC - {model_name}")
+        plt.xlabel("False Positive Rate")
+        plt.ylabel("True Positive Rate")
+        plt.title(f"ROC Curve - {model_name}")
         plt.legend(loc="lower right")
         safe_name = model_name.lower().replace(" ", "_")
         plt.savefig(f"resultados/roc_curve_{safe_name}.png")
@@ -122,9 +139,9 @@ class ModelEvaluator:
             "r--",
             lw=2,
         )
-        plt.xlabel("Valores Reales")
-        plt.ylabel("Predicciones")
-        plt.title(f"Predicciones vs Valores Reales - {model_name}")
+        plt.xlabel("Actual Values")
+        plt.ylabel("Predictions")
+        plt.title(f"Predictions vs Actual Values - {model_name}")
         safe_name = model_name.lower().replace(" ", "_")
         plt.savefig(f"resultados/regression_results_{safe_name}.png")
         plt.close()
@@ -137,15 +154,15 @@ class ModelEvaluator:
         report_path = f"resultados/reporte_{safe_name}_{timestamp}.txt"
 
         with open(report_path, "w", encoding="utf-8") as f:
-            f.write(f"=== Reporte de Evaluación: {model_name} ===\n")
-            f.write(f"Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+            f.write(f"=== Evaluation Report: {model_name} ===\n")
+            f.write(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
 
             if hasattr(model, "get_params"):
-                f.write("Parámetros del modelo:\n")
+                f.write("Model parameters:\n")
                 for param, value in model.get_params().items():
                     f.write(f"- {param}: {value}\n")
 
-            f.write("\nMétricas de Rendimiento\n")
+            f.write("\nPerformance Metrics\n")
             f.write("-" * 50 + "\n")
             if task_type == "classification":
                 f.write(f"Accuracy (Train): {metrics['accuracy_train']:.4f}\n")
@@ -163,7 +180,7 @@ class ModelEvaluator:
 
 
 class ModelOptimizer:
-    """Optimización e hiperparámetros."""
+    """Hyperparameter optimization."""
 
     @staticmethod
     def optimize_hyperparameters(
@@ -176,7 +193,7 @@ class ModelOptimizer:
         method: str = "grid",
         n_iter: int = 100,
     ) -> Tuple[BaseEstimator, Dict]:
-        """Optimiza hiperparámetros con Grid Search o Random Search."""
+        """Optimize hyperparameters using Grid Search or Random Search."""
         if method == "grid":
             search = GridSearchCV(model, param_grid, cv=cv, scoring=scoring, n_jobs=-1)
         else:
@@ -201,11 +218,25 @@ class ModelOptimizer:
         scoring: Union[str, List[str]] = "accuracy",
         task_type: str = "classification",
     ) -> Dict:
-        """Validación cruzada con una o varias métricas."""
+        """Cross-validation with one or more metrics."""
+        n_samples = len(X)
+        if n_samples < 2:
+            raise ValueError("At least 2 samples are required for cross-validation.")
+
+        n_splits = min(cv, n_samples)
         if task_type == "classification":
-            cv_splitter = StratifiedKFold(n_splits=cv, shuffle=True, random_state=42)
+            min_class_count = int(pd.Series(y).value_counts().min())
+            n_splits = min(n_splits, min_class_count)
+            if n_splits < 2:
+                raise ValueError(
+                    "Stratified cross-validation requires at least 2 samples per class."
+                )
+            cv_splitter = StratifiedKFold(
+                n_splits=n_splits, shuffle=True, random_state=42
+            )
         else:
-            cv_splitter = KFold(n_splits=cv, shuffle=True, random_state=42)
+            n_splits = max(2, n_splits)
+            cv_splitter = KFold(n_splits=n_splits, shuffle=True, random_state=42)
 
         if isinstance(scoring, str):
             scoring = [scoring]
@@ -224,7 +255,7 @@ class ModelOptimizer:
 
 
 class ModelPersistence:
-    """Guardado y carga de modelos con versionado."""
+    """Model persistence with versioning."""
 
     @staticmethod
     def save_model(
@@ -232,7 +263,7 @@ class ModelPersistence:
         model_name: str,
         include_timestamp: bool = True,
     ) -> str:
-        """Guarda el modelo en disco."""
+        """Save the model to disk."""
         save_dir = "modelos"
         os.makedirs(save_dir, exist_ok=True)
 
@@ -242,12 +273,12 @@ class ModelPersistence:
         )
         path = os.path.join(save_dir, filename)
         joblib.dump(model, path)
-        print(f"Modelo guardado en: {path}")
+        print(f"Model saved at: {path}")
         return path
 
     @staticmethod
     def load_model(path: str) -> BaseEstimator:
-        """Carga un modelo guardado."""
+        """Load a saved model."""
         if not os.path.exists(path):
-            raise FileNotFoundError(f"No se encontró el modelo en: {path}")
+            raise FileNotFoundError(f"Model not found at: {path}")
         return joblib.load(path)
