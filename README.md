@@ -355,6 +355,13 @@ python -m build
 twine upload dist/*
 ```
 
+## 👤 Author
+
+**Arman Ghaziaskari Naeini** _GIS & Remote Sensing Specialist | Spatial Data Scientist | GeoAI Enthusiast_ Bilbao, Spain
+
+- Portfolio : [armanghazi.github.io/portfolio/projects](https://armanghazi.github.io/portfolio/projects)
+- GitHub : [@armanghazi](https://github.com/armanghazi)
+- LinkedIn : [arman-ghaziaskari](https://www.linkedin.com/in/arman-ghaziaskari/)
 ---
 
 ## License
